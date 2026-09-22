@@ -167,6 +167,21 @@ async function udisksCall(path, iface, method, params, replyType = null) {
 
 const NO_OPTIONS = () => new GLib.Variant('(a{sv})', [{}]);
 
+// DU_DEMO=1 shows made-up disks instead of the real ones (for screenshots and development).
+const DEMO = !!GLib.getenv('DU_DEMO');
+
+async function systemSource() {
+    const reply = await Gio.DBus.system.call(UD, '/org/freedesktop/UDisks2',
+        'org.freedesktop.DBus.ObjectManager', 'GetManagedObjects', null, null,
+        Gio.DBusCallFlags.NONE, -1, null);
+    return {
+        objects: reply.recursiveUnpack()[0],
+        mountInfo: readMountInfo(),
+        usage: filesystemUsage,
+        os: osName(),
+    };
+}
+
 // ---- model ------------------------------------------------------------------
 //
 // Node kinds: drive, container (LUKS), group (Btrfs with subvolumes),
@@ -174,11 +189,8 @@ const NO_OPTIONS = () => new GLib.Variant('(a{sv})', [{}]);
 // image (loop device).
 
 async function loadModel() {
-    const reply = await Gio.DBus.system.call(UD, '/org/freedesktop/UDisks2',
-        'org.freedesktop.DBus.ObjectManager', 'GetManagedObjects', null, null,
-        Gio.DBusCallFlags.NONE, -1, null);
-    const objects = reply.recursiveUnpack()[0];
-    const mountInfo = readMountInfo();
+    const source = DEMO ? (await import('./demo.js')).demoSource() : await systemSource();
+    const {objects, mountInfo} = source;
 
     const blocks = new Map();
     const drives = new Map();
@@ -203,7 +215,7 @@ async function loadModel() {
         return dev === b;
     });
 
-    const os = osName();
+    const os = source.os;
     let seq = 0;
 
     const makeNode = (props, parent) => {
@@ -414,7 +426,7 @@ async function loadModel() {
     await Promise.all([...byId.values()].map(async n => {
         const mp = n.mountPoints?.[0] ?? n.mounts?.[0]?.mountPoint;
         if (mp)
-            n.usage = await filesystemUsage(mp);
+            n.usage = await source.usage(mp);
     }));
 
     return {sections, byId};
@@ -841,7 +853,9 @@ class DiskUtilityWindow {
             return;
         }
         this.renderSidebar();
-        const node = this.model.byId.get(this.selectedId) ?? this.firstNode();
+        const wanted = !this.selectedId && GLib.getenv('DU_SELECT');
+        const preselect = wanted ? [...this.model.byId.values()].find(n => n.id.includes(wanted) || n.name.includes(wanted)) : null;
+        const node = preselect ?? this.model.byId.get(this.selectedId) ?? this.firstNode();
         if (node) {
             this.selectedId = node.id;
             this.selectRow(node.id);
@@ -1143,8 +1157,10 @@ class DiskUtilityWindow {
         if (node.kind === 'drive') {
             if (node.nvme) {
                 const n = node.nvme;
-                let attrs = {};
+                let attrs = DEMO ? (await import('./demo.js')).DEMO_SMART : {};
                 try {
+                    if (DEMO)
+                        throw new Error('demo');
                     const r = await udisksCall(node.id, 'NVMe.Controller', 'SmartGetAttributes', NO_OPTIONS(), '(a{sv})');
                     attrs = r.recursiveUnpack()[0];
                 } catch (e) {

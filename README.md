@@ -1,5 +1,7 @@
 # Homesick
 
+![Homesick on GNOME: the dock, and Disk Utility](docs/screenshots/hero.png)
+
 **macOS comforts for GNOME.** Homesick is for people who moved from a Mac to Linux and keep reaching for things that aren't there. It brings back the macOS features you miss most, and it looks and feels like GNOME while doing it.
 
 It's three GNOME Shell extensions and one app. Pick the ones you want:
@@ -72,6 +74,8 @@ This removes everything and restores the settings the installer changed.
 ## Using it
 
 ### Dock
+![The dock with magnification and running-app dots](docs/screenshots/dock.png)
+
 - **Click** an app to open it, or to bring it to the front if it's already running.
 - **Click again** to cycle through its windows, or to minimize it if it has only one window.
 - **Middle-click** or **Ctrl+click** opens a new window.
@@ -80,6 +84,11 @@ This removes everything and restores the settings the installer changed.
 - The dock slides away while the Activities overview is open, and hides for fullscreen apps.
 
 ### Spotlight: Option+Space
+<p>
+  <img src="docs/screenshots/spotlight.png" alt="Spotlight searching apps, settings and files" width="49%">
+  <img src="docs/screenshots/spotlight-calc.png" alt="Spotlight doing maths" width="49%">
+</p>
+
 | Type… | You get |
 |---|---|
 | `firefox`, `ff`, `vsc` | Apps, with loose matching. Apps you use often rank higher over time |
@@ -103,6 +112,8 @@ Hold **Super** before you start dragging:
 - **Esc** during the drag puts the window back to its original size.
 
 ### Disk Utility
+![Disk Utility showing a drive with its partitions](docs/screenshots/disk-utility.png)
+
 - **Sidebar:** your disks, laid out like macOS: drive → partitions → encrypted container → volume group (Btrfs) → volumes. **View** switches between all devices and volumes only.
 - **Detail view:** the capacity, a coloured usage bar and a two-column info table (mount point, space used and available, device, UUID, firmware, partition map…).
 - **First Aid** reports your drive's health (warnings, temperature, wear, errors). It checks unmounted volumes.
@@ -141,6 +152,12 @@ Issues and pull requests are welcome. To test changes without logging out, run a
 
 ```bash
 dbus-run-session gnome-shell --devkit      # GNOME 49+ (use --nested on older versions)
+```
+
+Disk Utility has a demo mode with made-up disks, which is handy for development and screenshots:
+
+```bash
+DU_DEMO=1 gjs -m apps/disk-utility/main.js
 ```
 
 ## License
