@@ -1,0 +1,12 @@
+{
+  "uuid": "resize@homesick",
+  "name": "Homesick Option Resize",
+  "description": "macOS-style window resizing: hold Super (the 'opt | start' key) while dragging near an edge or corner to resize from the centre; hold Shift to keep the proportions.",
+  "shell-version": [
+    "48",
+    "49",
+    "50"
+  ],
+  "version": 1,
+  "url": "https://github.com/Johannett321/homesick"
+}

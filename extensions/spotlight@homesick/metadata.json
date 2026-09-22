@@ -1,0 +1,12 @@
+{
+  "uuid": "spotlight@homesick",
+  "name": "Homesick Spotlight",
+  "description": "Spotlight/Raycast-style launcher on Alt+Space: apps, calculator, files, windows, settings, system actions and web search.",
+  "shell-version": [
+    "48",
+    "49",
+    "50"
+  ],
+  "version": 1,
+  "url": "https://github.com/Johannett321/homesick"
+}

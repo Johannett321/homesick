@@ -1,0 +1,14 @@
+{
+  "uuid": "dock@homesick",
+  "name": "Homesick Dock",
+  "description": "An always-visible, macOS-style dock with magnification, running indicators and launch bounce.",
+  "shell-version": [
+    "46",
+    "47",
+    "48",
+    "49",
+    "50"
+  ],
+  "version": 1,
+  "url": "https://github.com/Johannett321/homesick"
+}

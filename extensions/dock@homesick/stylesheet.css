@@ -1,0 +1,37 @@
+.macdock-container {
+    padding-bottom: 6px;
+}
+
+.macdock {
+    background-color: rgba(38, 38, 44, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 20px;
+    padding: 5px 6px 1px 6px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
+.macdock-dot {
+    background-color: rgba(255, 255, 255, 0.85);
+    border-radius: 3px;
+}
+
+.macdock-separator-line {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+.macdock-launchpad {
+    background-gradient-direction: vertical;
+    background-gradient-start: #6b7cff;
+    background-gradient-end: #b35cf0;
+    border-radius: 12px;
+    color: white;
+}
+
+.macdock-label {
+    background-color: rgba(32, 32, 36, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #f2f2f2;
+    border-radius: 7px;
+    padding: 4px 10px;
+    font-size: 10pt;
+}
