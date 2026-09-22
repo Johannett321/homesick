@@ -7,7 +7,7 @@ EXT_DIR="$DATA/gnome-shell/extensions"
 STATE="$DATA/homesick"
 BIN="$HOME/.local/bin"
 APP_ID="app.homesick.DiskUtility"
-UUIDS=(dock@homesick spotlight@homesick resize@homesick)
+UUIDS=(dock@homesick spotlight@homesick emoji@homesick resize@homesick)
 
 info() { printf '  %s\n' "$*"; }
 
@@ -37,8 +37,8 @@ if [[ -f "$STATE/settings-backup" ]]; then
 fi
 rm -rf "$STATE/settings-backup"
 rmdir "$STATE" 2>/dev/null || true
-# Spotlight keeps a small launch-history file to rank results.
-rm -rf "$DATA/homesick-spotlight"
+# Spotlight and Emoji keep small history files (launch ranking, recent emoji).
+rm -rf "$DATA/homesick-spotlight" "$DATA/homesick-emoji"
 
 echo
 info "Done. Log out and back in to fully unload the extensions."

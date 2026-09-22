@@ -9,9 +9,9 @@ STATE="$DATA/homesick"
 BIN="$HOME/.local/bin"
 APP_ID="app.homesick.DiskUtility"
 
-ALL=(dock spotlight resize disk-utility)
-declare -A UUID=([dock]="dock@homesick" [spotlight]="spotlight@homesick" [resize]="resize@homesick")
-declare -A TITLE=([dock]="Dock" [spotlight]="Spotlight (Option+Space launcher)" [resize]="Option Resize" [disk-utility]="Disk Utility")
+ALL=(dock spotlight emoji resize disk-utility)
+declare -A UUID=([dock]="dock@homesick" [spotlight]="spotlight@homesick" [emoji]="emoji@homesick" [resize]="resize@homesick")
+declare -A TITLE=([dock]="Dock" [spotlight]="Spotlight (Option+Space launcher)" [emoji]="Emoji picker (Ctrl+Space)" [resize]="Option Resize" [disk-utility]="Disk Utility")
 
 ASSUME_YES=0
 BUTTONS=""          # "left", "keep" or "" (ask)
@@ -116,7 +116,7 @@ bold "Installing: $(for c in "${SELECTED[@]}"; do [[ -n $c ]] && printf '%s, ' "
 
 needs_relogin=0
 mkdir -p "$EXT_DIR"
-for c in dock spotlight resize; do
+for c in dock spotlight emoji resize; do
     has "$c" || continue
     uuid="${UUID[$c]}"
     rm -rf "${EXT_DIR:?}/$uuid"

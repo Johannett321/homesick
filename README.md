@@ -4,12 +4,13 @@
 
 **macOS comforts for GNOME.** Homesick is for people who moved from a Mac to Linux and keep reaching for things that aren't there. It brings back the macOS features you miss most, and it looks and feels like GNOME while doing it.
 
-It's three GNOME Shell extensions and one app. Pick the ones you want:
+It's four GNOME Shell extensions and one app. Pick the ones you want:
 
 | | What it is | What it does |
 |---|---|---|
 | 🧲 **Dock** | GNOME Shell extension | An always-visible dock at the bottom of the screen with icon magnification, running-app dots, app labels, the launch bounce, a Launchpad button and a Trash |
 | 🔍 **Spotlight** | GNOME Shell extension | Press **Option+Space** (Alt+Space) to search apps, files, settings and open windows, do maths, open websites or search the web |
+| 😀 **Emoji** | GNOME Shell extension | Press **Ctrl+Space** for a macOS-style emoji picker that opens at your text cursor. Search by name or keyword and the emoji is typed straight into the app |
 | ↔️ **Option Resize** | GNOME Shell extension | Hold **Super** (the "opt \| start" key on Mac-style keyboards) and drag near a window edge to resize from the centre. Hold **Shift** as well to keep the window's proportions |
 | 🩺 **Disk Utility** | App (GTK 4 / libadwaita) | A macOS-style Disk Utility: all disks, partitions, encrypted containers and volumes, usage bars, drive health (S.M.A.R.T.), mounting and ejecting |
 
@@ -41,7 +42,7 @@ Then **log out and back in**. GNOME only loads new extensions when you log in. D
 ./install.sh -y                         # don't ask questions
 ```
 
-Components: `dock`, `spotlight`, `resize`, `disk-utility`.
+Components: `dock`, `spotlight`, `emoji`, `resize`, `disk-utility`.
 
 ### What the installer changes
 
@@ -102,6 +103,15 @@ This removes everything and restores the settings the installer changed.
 
 **Enter** opens the result. **Ctrl+Enter** shows a file in Files, and **Alt+Enter** copies its path. **Esc** closes, as does clicking outside or pressing Option+Space again.
 
+### Emoji: Ctrl+Space
+<img src="docs/screenshots/emoji.png" alt="The emoji picker open below a text field" width="380">
+
+- **Ctrl+Space** opens the picker next to your text cursor.
+- **Start typing** to search by name or keyword: `joy` finds 😂, `heart` finds ❤️ and friends.
+- **Arrow keys** move the selection, **Enter** or a **click** inserts the emoji, and **Esc** closes. Your most recent emoji are shown first.
+- The emoji is typed into the app through GNOME's input method, so **your clipboard isn't touched**. Apps without input-method support (some older X11 apps) get it pasted instead, and your clipboard is restored afterwards.
+- Heads-up: while the extension is on, **Ctrl+Space** belongs to the picker, so apps that use it themselves (for example, autocomplete in VS Code and JetBrains IDEs) won't see it. You can change the shortcut in the extension file (see below).
+
 ### Option Resize
 Hold **Super** before you start dragging:
 
@@ -129,6 +139,7 @@ Each component keeps its settings as plain constants at the top of its source fi
 
 - **Dock:** `extensions/dock@homesick/extension.js`. Icon size, magnification, whether to show the Launchpad and Trash.
 - **Spotlight:** `extensions/spotlight@homesick/extension.js`. The shortcut, search engine, how deep file search goes, and folders to skip.
+- **Emoji:** `extensions/emoji@homesick/extension.js`. The shortcut, number of columns and how many recent emoji to keep.
 - **Option Resize:** `extensions/resize@homesick/extension.js`. How close to an edge a drag must start.
 - **Disk Utility:** colours and spacing in `apps/disk-utility/style.css`.
 

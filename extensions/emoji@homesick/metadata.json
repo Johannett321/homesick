@@ -1,0 +1,8 @@
+{
+  "uuid": "emoji@homesick",
+  "name": "Homesick Emoji",
+  "description": "macOS-style emoji picker: press Ctrl+Space to search and insert an emoji where your text cursor is.",
+  "shell-version": ["48", "49", "50"],
+  "version": 1,
+  "url": "https://github.com/Johannett321/homesick"
+}
