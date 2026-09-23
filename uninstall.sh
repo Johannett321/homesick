@@ -24,6 +24,11 @@ for uuid in "${UUIDS[@]}"; do
 done
 gsettings set org.gnome.shell enabled-extensions "$current"
 
+if [[ -e $BIN/open ]] && grep -q 'part of Homesick' "$BIN/open" 2>/dev/null; then
+    rm -f "$BIN/open"
+    info "✓ removed the open command"
+fi
+
 rm -f "$BIN/disk-utility" "$DATA/applications/$APP_ID.desktop" "$DATA/icons/hicolor/scalable/apps/$APP_ID.svg"
 rm -rf "$STATE/disk-utility"
 command -v update-desktop-database >/dev/null && update-desktop-database -q "$DATA/applications" 2>/dev/null || true

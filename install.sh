@@ -9,9 +9,9 @@ STATE="$DATA/homesick"
 BIN="$HOME/.local/bin"
 APP_ID="app.homesick.DiskUtility"
 
-ALL=(dock spotlight emoji resize disk-utility)
+ALL=(dock spotlight emoji resize disk-utility open)
 declare -A UUID=([dock]="dock@homesick" [spotlight]="spotlight@homesick" [emoji]="emoji@homesick" [resize]="resize@homesick")
-declare -A TITLE=([dock]="Dock" [spotlight]="Spotlight (Option+Space launcher)" [emoji]="Emoji picker (Ctrl+Space)" [resize]="Option Resize" [disk-utility]="Disk Utility")
+declare -A TITLE=([dock]="Dock" [spotlight]="Spotlight (Option+Space launcher)" [emoji]="Emoji picker (Ctrl+Space)" [resize]="Option Resize" [disk-utility]="Disk Utility" [open]="open command")
 
 ASSUME_YES=0
 BUTTONS=""          # "left", "keep" or "" (ask)
@@ -174,6 +174,27 @@ EOF
     command -v gtk-update-icon-cache >/dev/null && gtk-update-icon-cache -q -t -f "$DATA/icons/hicolor" 2>/dev/null || true
     info "✓ Disk Utility → $dest (launch it from the app grid or run 'disk-utility')"
     command -v gnome-disks >/dev/null || warn "GNOME Disks isn't installed; Erase/Partition/Restore need it"
+fi
+
+# ---- open command ---------------------------------------------------------------
+
+if has open; then
+    mkdir -p "$BIN"
+    if [[ -e $BIN/open ]] && ! grep -q 'part of Homesick' "$BIN/open" 2>/dev/null; then
+        warn "$BIN/open already exists and isn't ours — leaving it alone"
+    elif command -v open >/dev/null && [[ "$(command -v open)" != "$BIN/open" ]]; then
+        warn "another 'open' command exists at $(command -v open) — installing ours anyway at $BIN/open"
+        cp "$REPO/bin/open" "$BIN/open" && chmod +x "$BIN/open"
+        info "✓ open command → $BIN/open"
+    else
+        cp "$REPO/bin/open" "$BIN/open"
+        chmod +x "$BIN/open"
+        info "✓ open command → $BIN/open  (try: open .)"
+    fi
+    case ":$PATH:" in
+        *":$BIN:"*) ;;
+        *) warn "$BIN isn't in your PATH — add it to use 'open' (e.g. in ~/.bashrc)" ;;
+    esac
 fi
 
 # ---- window buttons -------------------------------------------------------------

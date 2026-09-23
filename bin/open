@@ -1,0 +1,202 @@
+#!/usr/bin/env bash
+# open — macOS-style "open" for the Linux terminal (part of Homesick).
+#
+#   open .                 open the current folder in Files
+#   open report.pdf        open a file in its default app
+#   open https://gnome.org open a URL in the browser
+#   open -R notes.md       reveal the file in Files, with it selected
+#   open -a gimp photo.png open with a specific app
+#   open -e notes.md       open in the default text editor
+#
+# Set HOMESICK_OPEN_DRY_RUN=1 to print what would run instead of running it.
+set -euo pipefail
+
+PROG="open"
+reveal=0
+app=""
+editor=0
+new=0
+
+die() { printf '%s: %s\n' "$PROG" "$*" >&2; exit 1; }
+
+usage() {
+    cat <<EOF
+Usage: $PROG [options] [file|folder|URL ...]
+
+Opens files, folders and URLs in the app your desktop uses for them.
+With no arguments, opens the current folder.
+
+Options:
+  -a APP     open with APP (name, e.g. "gimp" or "Text Editor", or a .desktop file)
+  -R, -r     reveal in the file manager instead of opening (selects the file)
+  -e, -t     open in the default text editor
+  -n         open a new instance of the app
+  -h         show this help
+
+Examples:
+  $PROG .                    $PROG ~/Downloads
+  $PROG -R report.pdf        $PROG -a "Text Editor" notes.md
+  $PROG https://gnome.org    $PROG -e /etc/hosts
+EOF
+}
+
+# Same as run(), but the command's own chatter is hidden.
+run_quiet() {
+    if [[ -n ${HOMESICK_OPEN_DRY_RUN:-} ]]; then
+        run "$@"
+        return
+    fi
+    "$@" >/dev/null
+}
+
+run() {
+    if [[ -n ${HOMESICK_OPEN_DRY_RUN:-} ]]; then
+        printf 'would run:'
+        printf ' %q' "$@"
+        printf '\n'
+        return 0
+    fi
+    "$@"
+}
+
+while getopts ':a:eRrtnh-:' opt; do
+    case "$opt" in
+        a) app="$OPTARG" ;;
+        e|t) editor=1 ;;
+        R|r) reveal=1 ;;
+        n) new=1 ;;
+        h) usage; exit 0 ;;
+        -) [[ $OPTARG == help ]] && { usage; exit 0; }; die "unknown option --$OPTARG" ;;
+        :) die "option -$OPTARG needs a value" ;;
+        ?) die "unknown option -$OPTARG (try $PROG -h)" ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+# No arguments: the current folder, like macOS.
+[[ $# -eq 0 ]] && set -- .
+
+is_uri() { [[ $1 =~ ^[a-zA-Z][a-zA-Z0-9+.-]*:// || $1 == mailto:* || $1 == magnet:* ]]; }
+
+# "github.com", "www.gnome.org/about" — but not "notes.txt".
+WEB_TLDS="com|org|net|io|dev|app|ai|co|edu|gov|info|me|xyz|no|se|dk|fi|de|fr|nl|uk|eu|es|it|pl|cz|ch|at|be|ie|pt|ca|us|au|nz|jp|in|br"
+looks_like_domain() {
+    [[ $1 == www.* ]] && return 0
+    [[ $1 =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]*\.($WEB_TLDS)(/.*)?$ ]]
+}
+
+# Turn each argument into an absolute path or a URI.
+targets=()
+for arg in "$@"; do
+    if is_uri "$arg"; then
+        targets+=("$arg")
+    elif [[ -e $arg ]]; then
+        targets+=("$(realpath -- "$arg")")
+    elif looks_like_domain "$arg"; then
+        targets+=("https://$arg")   # bare domain, like "open github.com"
+    else
+        die "the file $arg does not exist."
+    fi
+done
+
+# Percent-encode a path into a file:// URI.
+to_uri() {
+    # LC_ALL=C so we walk UTF-8 bytes, not characters.
+    local LC_ALL=C path="$1" out="" i c
+    for (( i = 0; i < ${#path}; i++ )); do
+        c="${path:i:1}"
+        case "$c" in
+            [a-zA-Z0-9/._~-]) out+="$c" ;;
+            *) out+="$(printf '%%%02X' "'$c")" ;;
+        esac
+    done
+    printf 'file://%s\n' "$out"
+}
+
+# Directories holding .desktop files, in XDG order.
+app_dirs() {
+    local dir
+    local home="${XDG_DATA_HOME:-$HOME/.local/share}"
+    printf '%s\n' "${home%/}/applications"
+    IFS=: read -ra dirs <<<"${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+    for dir in "${dirs[@]}"; do
+        printf '%s\n' "${dir%/}/applications"
+    done
+}
+
+# Find a .desktop file from an app name: "gimp", "Text Editor", "org.gnome.TextEditor.desktop".
+find_desktop_file() {
+    local name="${1%.desktop}" lower="${1,,}" dir file appname best=""
+    lower="${lower%.desktop}"
+    while IFS= read -r dir; do
+        [[ -d $dir ]] || continue
+        for file in "$dir/$name.desktop" "$dir/$lower.desktop"; do
+            [[ -f $file ]] && { printf '%s\n' "$file"; return 0; }
+        done
+    done < <(app_dirs)
+    while IFS= read -r dir; do
+        [[ -d $dir ]] || continue
+        while IFS= read -r file; do
+            appname="$(awk -F= '/^Name=/ {print $2; exit}' "$file" 2>/dev/null || true)"
+            if [[ ${appname,,} == "$lower" ]]; then
+                printf '%s\n' "$file"
+                return 0
+            fi
+            if [[ -z $best && ( ${appname,,} == *"$lower"* || ${file,,} == *"$lower"*.desktop ) ]]; then
+                best="$file"
+            fi
+        done < <(find "$dir" -maxdepth 2 -name '*.desktop' 2>/dev/null | sort)
+    done < <(app_dirs)
+    [[ -n $best ]] && { printf '%s\n' "$best"; return 0; }
+    return 1
+}
+
+# The default app (.desktop id) for a MIME type.
+default_app_for() {
+    gio mime "$1" 2>/dev/null | sed -n 's/^Default application for .*: //p' | head -1
+}
+
+if (( reveal )); then
+    uris=()
+    for t in "${targets[@]}"; do
+        if is_uri "$t"; then
+            uris+=("$t")
+        else
+            uris+=("$(to_uri "$t")")
+        fi
+    done
+    list="$(printf "'%s'," "${uris[@]}")"
+    run_quiet gdbus call --session \
+        --dest org.freedesktop.FileManager1 \
+        --object-path /org/freedesktop/FileManager1 \
+        --method org.freedesktop.FileManager1.ShowItems "[${list%,}]" ""
+    exit 0
+fi
+
+if (( editor )) && [[ -z $app ]]; then
+    app="$(default_app_for text/plain)"
+    [[ -n $app ]] || die "couldn't find a default text editor."
+fi
+
+if [[ -n $app ]]; then
+    desktop="$(find_desktop_file "$app")" || die "can't find an application called “$app”."
+    run gio launch "$desktop" "${targets[@]}"
+    exit 0
+fi
+
+if (( new )); then
+    # No app given: ask the default handler of the first target for a new window.
+    first="${targets[0]}"
+    if [[ -d $first ]]; then
+        mime=inode/directory
+    else
+        mime="$(gio info -a standard::content-type "$first" 2>/dev/null | sed -n 's/^ *standard::content-type: //p' | head -1)"
+    fi
+    desktop="$(default_app_for "$mime")"
+    if [[ -n ${desktop:-} ]] && desktop="$(find_desktop_file "$desktop")"; then
+        run gio launch "$desktop" "${targets[@]}"
+        exit 0
+    fi
+fi
+
+run gio open "${targets[@]}"

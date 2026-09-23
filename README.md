@@ -4,7 +4,7 @@
 
 **macOS comforts for GNOME.** Homesick is for people who moved from a Mac to Linux and keep reaching for things that aren't there. It brings back the macOS features you miss most, and it looks and feels like GNOME while doing it.
 
-It's four GNOME Shell extensions and one app. Pick the ones you want:
+It's four GNOME Shell extensions, an app and a terminal command. Pick the ones you want:
 
 | | What it is | What it does |
 |---|---|---|
@@ -12,6 +12,7 @@ It's four GNOME Shell extensions and one app. Pick the ones you want:
 | 🔍 **Spotlight** | GNOME Shell extension | Press **Option+Space** (Alt+Space) to search apps, files, settings and open windows, do maths, open websites or search the web |
 | 😀 **Emoji** | GNOME Shell extension | Press **Ctrl+Space** for a macOS-style emoji picker that opens at your text cursor. Search by name or keyword and the emoji is typed straight into the app |
 | ↔️ **Option Resize** | GNOME Shell extension | Hold **Super** (the "opt \| start" key on Mac-style keyboards) and drag near a window edge to resize from the centre. Hold **Shift** as well to keep the window's proportions |
+| 📂 **open** | Terminal command | `open .` opens the current folder in Files, `open file.pdf` opens a file, `open https://…` opens a link — the macOS `open` command for Linux |
 | 🩺 **Disk Utility** | App (GTK 4 / libadwaita) | A macOS-style Disk Utility: all disks, partitions, encrypted containers and volumes, usage bars, drive health (S.M.A.R.T.), mounting and ejecting |
 
 Everything installs **for your user only**, so you **don't need sudo** or admin rights.
@@ -42,7 +43,7 @@ Then **log out and back in**. GNOME only loads new extensions when you log in. D
 ./install.sh -y                         # don't ask questions
 ```
 
-Components: `dock`, `spotlight`, `emoji`, `resize`, `disk-utility`.
+Components: `dock`, `spotlight`, `emoji`, `resize`, `disk-utility`, `open`.
 
 ### What the installer changes
 
@@ -121,6 +122,20 @@ Hold **Super** before you start dragging:
 - **Super + drag in the middle of a window** still moves it, as in standard GNOME.
 - **Esc** during the drag puts the window back to its original size.
 
+### open (terminal command)
+```bash
+open .                      # the current folder, in Files
+open ~/Downloads            # any folder
+open report.pdf             # a file, in its default app
+open https://gnome.org      # a link, in your browser
+open github.com             # bare domains work too
+open -R notes.md            # reveal in Files, with the file selected
+open -a "Text Editor" a.md  # open with a specific app
+open -e /etc/hosts          # open in the default text editor
+open -n .                    # force a new window
+```
+Works like the macOS `open`: with no arguments it opens the current folder, and it reports an error if a file doesn't exist. Fedora has no `open` command of its own, so nothing is shadowed.
+
 ### Disk Utility
 ![Disk Utility showing a drive with its partitions](docs/screenshots/disk-utility.png)
 
@@ -142,6 +157,7 @@ Each component keeps its settings as plain constants at the top of its source fi
 - **Emoji:** `extensions/emoji@homesick/extension.js`. The shortcut, number of columns and how many recent emoji to keep.
 - **Option Resize:** `extensions/resize@homesick/extension.js`. How close to an edge a drag must start.
 - **Disk Utility:** colours and spacing in `apps/disk-utility/style.css`.
+- **open:** `bin/open`. Run it with `HOMESICK_OPEN_DRY_RUN=1` to see what it would run without opening anything.
 
 Edit the file, run `./install.sh` again, then log out and back in.
 
